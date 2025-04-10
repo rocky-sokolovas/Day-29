@@ -1,7 +1,7 @@
 from tkinter import *
 from tkinter import messagebox
 from random import randint,choice,shuffle
-
+import json
 # ---------------------------- PASSWORD GENERATOR ------------------------------- #
 letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
 numbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
@@ -28,15 +28,44 @@ def save():
     site=url_entry.get()
     email=email_entry.get()
     password=pass_entry.get()
-    if site=="" or password=="":
+    new_data={site:{
+        "email":email,
+        "password":password
+        }}
+    if len(site)==0 or len(password)==0:
         messagebox.showerror(title="Oops",message="All values should be filled in")
     else:
-        is_ok= messagebox.askokcancel(title=site,message=f"These are the details entered:\n Email: {email}\nPassword: {password}\n Press okay to save")
-        if is_ok:    
-            with open("./passwords.txt","a") as data:
-                data.write(f"{site} | {email} | {password}\n")
-                url_entry.delete(0,END)
-                pass_entry.delete(0,END)
+        try:
+            with open("./passwords.json","r") as data_file:
+                data=json.load(data_file)
+        except FileNotFoundError:
+            with open("./passwords.json","w") as data_file:
+                json.dump(new_data,data_file,indent=4)
+        else:
+            data.update(new_data)
+            with open("./passwords.json","w") as data_file:
+                json.dump(data,data_file,indent=4)
+        finally:
+            url_entry.delete(0,END)
+            pass_entry.delete(0,END)
+# ------------------------- SEARCH FUNCTION --------------------------- #
+
+def search():
+    site=url_entry.get()
+    try:
+        with open("./passwords.json","r") as data_file:
+            data=json.load(data_file)
+    except FileNotFoundError:
+        messagebox.showinfo(title="No data",message="There are no passwords saved.")
+    else:
+        try:
+            website=data[site]
+        except KeyError:
+            messagebox.showinfo(title="No Website found",message="This website is not found, try a different name")
+        else:
+            messagebox.showinfo(title=site,message=f"Email: {website["email"]}\nPassword: {website["password"]}")
+
+
 # ---------------------------- UI SETUP ------------------------------- #
 window=Tk()
 window.title("Password Manager")
@@ -45,9 +74,10 @@ logo_image=PhotoImage(file="./logo.png")
 url_label=Label(text="Website:")
 email_label=Label(text="Email:")
 pass_label=Label(text="Password:")
-url_entry=Entry(width=40)
+url_entry=Entry(width=23)
 email_entry=Entry(width=40)
 pass_entry=Entry(width=23)
+search_btn=Button(text="Search",width=15,command=search)
 gen_pass_btn=Button(text="Generate Password",command=gen_password)
 add_btn=Button(text="Add",width=36,command=save)
 canvas=Canvas(width=200,height=200,highlightthickness=0)
@@ -57,7 +87,8 @@ canvas.grid(row=0,column=1)
 url_label.grid(row=1,column=0)
 email_label.grid(row=2,column=0)
 pass_label.grid(row=3,column=0)
-url_entry.grid(row=1,column=1,columnspan=2)
+url_entry.grid(row=1,column=1)
+search_btn.grid(row=1,column=2)
 email_entry.grid(row=2,column=1,columnspan=2)
 pass_entry.grid(row=3,column=1)
 gen_pass_btn.grid(row=3,column=2)
