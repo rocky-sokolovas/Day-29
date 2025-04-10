@@ -58,12 +58,11 @@ def search():
     except FileNotFoundError:
         messagebox.showinfo(title="No data",message="There are no passwords saved.")
     else:
-        try:
-            website=data[site]
-        except KeyError:
-            messagebox.showinfo(title="No Website found",message="This website is not found, try a different name")
+        if site in data:
+            messagebox.showinfo(title=site,message=f"Email: {data[site]["email"]}\nPassword: {data[site]["password"]}")
         else:
-            messagebox.showinfo(title=site,message=f"Email: {website["email"]}\nPassword: {website["password"]}")
+            messagebox.showinfo(title="No Website found",message="This website is not found, try a different name")
+
 
 
 # ---------------------------- UI SETUP ------------------------------- #
